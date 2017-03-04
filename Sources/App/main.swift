@@ -54,19 +54,32 @@ extension Request {
     }
 }
 
-drop.get("category") { request in
-    let sql = "select id, name from movie_category where   id >= 2 and  id <=8"
-        let results = try mysql.execute(sql)
-        var nodes: [Node] = [Node]()
 
+drop.get("category") { request in
+
+    let sql = "select id, name from movie_category where  id >= 2 and  id <=8"
+
+    var node: Node
+
+    var cacheNode: Node? = try drop.cache.get(sql)
+    if let letCacheNode = cacheNode {
+        node = letCacheNode
+    } else {
+        var nodes: [Node] = [Node]()
+        let results = try mysql.execute(sql)
         results.forEach { (item: [String: Node]) in
             nodes.append(Node(item))
         }
-        return try JSON(Node(nodes))
+        node = Node(nodes)
+        try drop.cache.set(sql, node)
 
 
+    }
 
+    print(JSON(node))
+    return try JSON(node)
 }
+
 drop.get("mysql") { request in
 
 
@@ -84,7 +97,7 @@ drop.get("mysql") { request in
 
     var nodes: [Node] = [Node]()
 
-    var catId:Node = request.getValue(for: "catId", default: Node(2))
+    var catId: Node = request.getValue(for: "catId", default: Node(2))
 
     let sql = "SELECT * FROM movie_down_url WHERE movie_cat_id = \(catId.int!)  limit  \(pn) offset \(pn * page.int!)"
 
@@ -131,8 +144,9 @@ drop.get("welcome") { request in
 
 drop.get { request in
     return try drop.view.make("welcome",
-//            ["message": drop.localization[request.lang, "welcome", "title"]
-            ["message": request.parameters.string!])
+            ["message": drop.localization[request.lang, "welcome"]]
+//            ["message": request.parameters.string!]
+    )
 
 }
 
