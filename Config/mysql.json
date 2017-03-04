@@ -1,0 +1,9 @@
+{
+  "host": "127.0.0.1",
+  "user": "root",
+  "password": "180531301324",
+  "database": "tieba",
+  "port": 3306,
+  "flag": 0,
+  "encoding": "utf8"
+}
